@@ -9,5 +9,4 @@ public record UserUpdateRequest(
         String nickname
 ) {
 
-
 }

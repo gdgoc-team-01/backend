@@ -22,6 +22,7 @@ public class UserService {
 
     public String recommendNickname() {
         RandomNicknameGenerator generator = new RandomNicknameGenerator();
+
         for(int attempt = 0; attempt < 100; attempt++) {
             String nickname = generator.generateRandomNickname();
 
@@ -29,6 +30,7 @@ public class UserService {
                 return nickname;
             }
         }
+
         throw new NicknameGenerationException("추천 닉네임을 생성하지 못했습니다.");
     }
 
@@ -40,6 +42,7 @@ public class UserService {
         if(userRepository.existsByNickname(nickname)) {
             throw new DuplicateException("이미 존재하는 닉네임입니다.");
         }
+
         if(userRepository.existsByEmail(email)) {
             throw new DuplicateException("이미 존재하는 이메일입니다.");
         }
@@ -50,6 +53,10 @@ public class UserService {
     public User updateUser(Long id, String nickname) {
 
         User user = getUser(id);
+
+        if(user.getNickname().equals(nickname)) {
+            return user;
+        }
 
         if(userRepository.existsByNickname(nickname)) {
             throw new DuplicateException("이미 존재하는 닉네임입니다.");
@@ -65,5 +72,4 @@ public class UserService {
 
         userRepository.deleteById(id);
     }
-
 }
