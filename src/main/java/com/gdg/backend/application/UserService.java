@@ -16,11 +16,8 @@ public class UserService {
     private final UserRepository userRepository;
 
     public User getUser(Long id) {
-        Optional<User> result = userRepository.findById(id);
-        if(result.isEmpty()) {
-            throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
-        }
-        return result.get();
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
     }
 
     public String recommendNickname() {
@@ -32,7 +29,7 @@ public class UserService {
                 return nickname;
             }
         }
-        throw new IllegalArgumentException("추천 닉네임을 생성하지 못했습니다.");
+        throw new NicknameGenerationException("추천 닉네임을 생성하지 못했습니다.");
     }
 
     public List<User> getUsers() {
@@ -41,38 +38,31 @@ public class UserService {
 
     public User createUser(String email, String nickname) {
         if(userRepository.existsByNickname(nickname)) {
-            throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
+            throw new DuplicateException("이미 존재하는 닉네임입니다.");
         }
         if(userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+            throw new DuplicateException("이미 존재하는 이메일입니다.");
         }
 
         return userRepository.save(new User(email, nickname));
     }
 
     public User updateUser(Long id, String nickname) {
-        if(nickname == null || nickname.isBlank()) {
-            throw new IllegalArgumentException("닉네임을 입력해주세요.");
-        }
-        if(nickname.length() > 12) {
-            throw new IllegalArgumentException("닉네임은 12자 이하여야 합니다.");
-        }
 
         User user = getUser(id);
-        if (user.getNickname().equals(nickname)) {
-            return user;
-        }
 
         if(userRepository.existsByNickname(nickname)) {
-            throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
+            throw new DuplicateException("이미 존재하는 닉네임입니다.");
         }
 
         user.updateNickname(nickname);
+
         return userRepository.save(user);
     }
 
     public void deleteUser(Long id) {
         User user = getUser(id);
+
         userRepository.deleteById(id);
     }
 

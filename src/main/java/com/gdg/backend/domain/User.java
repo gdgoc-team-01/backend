@@ -25,19 +25,26 @@ public class User {
     private String email;
 
     public User(String email, String nickname) {
-        if(nickname.length() > 12) {
-            throw new DomainException("닉네임은 12자 이하여야 합니다.");
-        }
-        if(nickname.isBlank()) {
-            throw new DomainException("닉네임을 입력해주세요.");
-        }
+        validateNickname(nickname);
 
         this.email = email;
         this.nickname = nickname;
     }
 
     public void updateNickname(String nickname) {
+        validateNickname(nickname);
+
         this.nickname = nickname;
+    }
+
+    private void validateNickname(String nickname) {
+        if(nickname.length() > 12) {
+            throw new DomainException("닉네임은 12자 이하여야 합니다.");
+        }
+
+        if(nickname.isBlank()) {
+            throw new DomainException("닉네임을 입력해주세요.");
+        }
     }
 
     public String getEmail() {
