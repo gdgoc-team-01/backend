@@ -3,6 +3,7 @@ package com.gdg.backend.presentation;
 import com.gdg.backend.application.DuplicateException;
 import com.gdg.backend.application.NicknameGenerationException;
 import com.gdg.backend.application.NotFoundException;
+import com.gdg.backend.domain.DomainException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -36,6 +37,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NicknameGenerationException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String handleNicknameGenerationException(NicknameGenerationException exception) {
+        return exception.getMessage();
+    }
+
+    @ExceptionHandler(DomainException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleDomainException(DomainException exception) {
         return exception.getMessage();
     }
 }

@@ -8,5 +8,4 @@ public record UserUpdateRequest(
         @Size(max = 12, message = "닉네임은 12자 이하여야 합니다.")
         String nickname
 ) {
-
 }
