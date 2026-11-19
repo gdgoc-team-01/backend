@@ -1,6 +1,7 @@
 package com.gdg.backend.presentation;
 
 import com.gdg.backend.application.DuplicateException;
+import com.gdg.backend.application.NicknameGenerationException;
 import com.gdg.backend.application.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -30,5 +31,11 @@ public class GlobalExceptionHandler {
                 .getFieldErrors()
                 .getFirst()
                 .getDefaultMessage();
+    }
+
+    @ExceptionHandler(NicknameGenerationException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public String handleNicknameGenerationException(NicknameGenerationException exception) {
+        return exception.getMessage();
     }
 }
