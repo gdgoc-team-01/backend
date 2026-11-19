@@ -6,6 +6,10 @@ import com.gdg.backend.domain.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.gdg.backend.domain.User;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.Arguments;
+import java.util.stream.Stream;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
 import java.net.URI;
@@ -25,6 +29,64 @@ public class UserApiTest {
 
     @LocalServerPort
     private int port;
+
+    static Stream<Arguments> invalidNicknames() {
+        return Stream.of(
+                Arguments.of("빈 문자열", "{\"nickname\":\"\"}", "닉네임을 입력해주세요."),
+                Arguments.of("공백", "{\"nickname\":\"   \"}", "닉네임을 입력해주세요."),
+                Arguments.of("null", "{\"nickname\":null}", "닉네임을 입력해주세요."),
+                Arguments.of("필드 누락", "{}", "닉네임을 입력해주세요."),
+                Arguments.of("13자", "{\"nickname\":\"가나다라마바사아자차카타파\"}", "닉네임은 12자 이하여야 합니다.")
+        );
+    }
+
+    @ParameterizedTest(name = "{0} 닉네임은 400으로 거절")
+    @MethodSource("invalidNicknames")
+    void invalidNicknameReturns400(String scenario, String body, String expectedMessage) throws Exception {
+        User user = userRepository.save(new User("validation@example.com", "행복한 수달"));
+
+        try (HttpClient client = HttpClient.newHttpClient()) {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://localhost:" + port + "/users/" + user.getId()))
+                    .timeout(Duration.ofSeconds(10))
+                    .header("Content-Type", "application/json")
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            assertEquals(400, response.statusCode());
+            assertEquals(expectedMessage, response.body());
+            assertEquals("행복한 수달",
+                    userRepository.findById(user.getId()).orElseThrow().getNickname());
+        } finally {
+            userRepository.deleteById(user.getId());
+        }
+    }
+
+    @Test
+    void twelveCharacterNicknameIsAccepted() throws Exception {
+        User user = userRepository.save(new User("boundary@example.com", "행복한 수달"));
+        String nickname = "가나다라마바사아자차카타";
+
+        try (HttpClient client = HttpClient.newHttpClient()) {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://localhost:" + port + "/users/" + user.getId()))
+                    .timeout(Duration.ofSeconds(10))
+                    .header("Content-Type", "application/json")
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(
+                            "{\"nickname\":\"" + nickname + "\"}"))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            assertEquals(200, response.statusCode());
+            assertEquals(nickname,
+                    userRepository.findById(user.getId()).orElseThrow().getNickname());
+        } finally {
+            userRepository.deleteById(user.getId());
+        }
+    }
 
     @Test
     void duplicateNicknameReturns409() throws Exception {
