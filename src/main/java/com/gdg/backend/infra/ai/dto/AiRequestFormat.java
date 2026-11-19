@@ -5,6 +5,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
 final class AiRequestFormat {
+
     private AiRequestFormat() {
     }
 

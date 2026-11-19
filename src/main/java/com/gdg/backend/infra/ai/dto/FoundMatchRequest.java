@@ -10,6 +10,7 @@ public record FoundMatchRequest(
         OffsetDateTime foundAt,
         AiLocation location
 ) {
+
     public FoundMatchRequest {
         foundAt = AiRequestFormat.kstMinute(foundAt);
     }

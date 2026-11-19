@@ -10,6 +10,7 @@ public record LostMatchRequest(
         @JsonProperty("noticed_missing_at") OffsetDateTime noticedMissingAt,
         AiLocation location
 ) {
+
     public LostMatchRequest {
         lastSeenAt = AiRequestFormat.kstMinute(lastSeenAt);
         noticedMissingAt = AiRequestFormat.kstMinute(noticedMissingAt);
