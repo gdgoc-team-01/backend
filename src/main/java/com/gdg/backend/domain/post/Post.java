@@ -88,10 +88,12 @@ public class Post extends BaseEntity {
         if (itemName.isBlank() || itemName.length() > 255) {
             throw new DomainException("물건 이름은 비어 있을 수 없으며 255자 이내여야 합니다.");
         }
+
         if (locationX.signum() < 0 || locationX.compareTo(BigDecimal.valueOf(1252)) > 0
                 || locationY.signum() < 0 || locationY.compareTo(BigDecimal.valueOf(1298)) > 0) {
             throw new DomainException("지도 좌표 범위를 확인해주세요.");
         }
+
         if (type == PostType.LOST) {
             if (description.isBlank()) {
                 throw new DomainException("분실물 설명을 입력해주세요.");
@@ -100,6 +102,7 @@ public class Post extends BaseEntity {
                 throw new DomainException("마지막 확인 시각은 분실 인지 시각보다 늦을 수 없습니다.");
             }
         }
+
         if (type == PostType.FOUND && imageUrl.isBlank()) {
             throw new DomainException("습득 이미지 URL을 입력해주세요.");
         }
