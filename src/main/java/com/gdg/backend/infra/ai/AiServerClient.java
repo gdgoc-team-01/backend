@@ -7,6 +7,8 @@ import com.gdg.backend.infra.ai.dto.LostEmbedRequest;
 import com.gdg.backend.infra.ai.dto.LostMatchRequest;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -14,14 +16,12 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.Resource;
 
+@RequiredArgsConstructor
 public class AiServerClient {
 
     private final RestClient restClient;
-
-    public AiServerClient(RestClient restClient) {
-        this.restClient = restClient;
-    }
 
     public AiMatchResponse matchLost(LostMatchRequest request) {
         return Objects.requireNonNull(restClient.post()
@@ -64,9 +64,12 @@ public class AiServerClient {
                 .body(AiEmbeddingResponse.class), "AI embedding response body is empty");
     }
 
-    public AiEmbeddingResponse embedFound(MultipartFile image) {
+    public AiEmbeddingResponse embedFound(Long postId, Resource image, MediaType contentType) {
         var body = new LinkedMultiValueMap<String, Object>();
-        addImage(body, image);
+        body.add("post_id", postId.toString());
+        var headers = new HttpHeaders();
+        headers.setContentType(contentType);
+        body.add("image", new HttpEntity<>(image, headers));
 
         return Objects.requireNonNull(restClient.post()
                 .uri("/ai/embed/found")
