@@ -1,5 +1,6 @@
 package com.gdg.backend.domain;
 
+import com.gdg.backend.domain.common.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "users")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,11 +25,20 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(unique = true)
+    private String googleSubject;
+
     public User(String email, String nickname) {
         validateNickname(nickname);
 
         this.email = email;
         this.nickname = nickname;
+    }
+
+    public static User fromGoogle(String email, String nickname, String googleSubject) {
+        User user = new User(email, nickname);
+        user.googleSubject = googleSubject;
+        return user;
     }
 
     public void updateNickname(String nickname) {
