@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>구글 로그인</title>
+</head>
+<body>
+<main>
+    <h1 id="login-status">구글 로그인에 성공했어요.</h1>
+    <p id="profile" role="status"></p>
+    <button id="logout-button" type="button">로그아웃</button>
+    <a id="login-link" href="/oauth2/authorization/google" hidden>구글로 다시 로그인</a>
+    <p id="feedback" role="status"></p>
+</main>
+<script>
+    const button = document.querySelector("#logout-button");
+    const loginLink = document.querySelector("#login-link");
+    const loginStatus = document.querySelector("#login-status");
+    const profile = document.querySelector("#profile");
+    const feedback = document.querySelector("#feedback");
+
+    async function loadProfile() {
+        try {
+            const response = await fetch("/me");
+            if (!response.ok) {
+                throw new Error("Could not load the profile");
+            }
+            const { nickname } = await response.json();
+            if (!button.hidden) {
+                profile.textContent = `${nickname}님, 반가워요.`;
+            }
+        } catch {
+            if (!button.hidden) {
+                profile.textContent = "회원 정보를 불러오지 못했어요.";
+            }
+        }
+    }
+    loadProfile();
+
+    button.addEventListener("click", async () => {
+        button.disabled = true;
+        feedback.textContent = "";
+
+        try {
+            const csrf = await fetch("/csrf");
+            if (csrf.ok) {
+                const { headerName, token } = await csrf.json();
+                const response = await fetch("/logout", {
+                    method: "POST",
+                    headers: { [headerName]: token }
+                });
+                if (!response.ok) {
+                    throw new Error("Logout request failed");
+                }
+            } else if (csrf.status !== 401) {
+                throw new Error("Could not get the CSRF token");
+            }
+
+            loginStatus.textContent = "로그아웃됐어요.";
+            profile.textContent = "";
+            button.hidden = true;
+            loginLink.hidden = false;
+            loginLink.focus();
+        } catch {
+            feedback.textContent = "로그아웃 요청에 실패했어요. 다시 시도해 주세요.";
+        } finally {
+            button.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
