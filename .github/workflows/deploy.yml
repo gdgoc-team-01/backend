@@ -84,7 +84,7 @@ jobs:
 
           docker compose -p backend -f docker-compose.prod.yml config --quiet
           docker compose -p backend -f docker-compose.prod.yml pull backend
-          docker compose -p backend -f docker-compose.prod.yml up -d --no-deps backend
+          docker compose -p backend -f docker-compose.prod.yml up -d backend
 
       - name: Check deployment
         run: |
