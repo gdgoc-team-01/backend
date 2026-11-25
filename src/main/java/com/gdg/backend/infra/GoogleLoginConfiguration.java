@@ -34,6 +34,7 @@ class GoogleLoginConfiguration {
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/login/success", "/me", "/csrf").authenticated()
                         .requestMatchers(updateUser, deleteUser).authenticated()
+                        .requestMatchers("/actuator/health").permitAll()
                         .anyRequest().permitAll())
                 .logout(logout -> logout
                         .logoutUrl("/logout")

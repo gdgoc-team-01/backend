@@ -92,12 +92,20 @@ jobs:
           docker compose -p backend -f docker-compose.prod.yml ps
 
           for i in $(seq 1 30); do
-            if curl -s --max-time 3 -o /dev/null http://localhost:8080; then
+            if STATUS=$(curl -sS --max-time 3 \
+              -o /dev/null -w "%{http_code}" \
+              http://localhost:8080/actuator/health) \
+              && [ "$STATUS" = "200" ]; then
+              echo "Deployment successful"
               exit 0
             fi
+
+            echo "Waiting for application to become healthy ($i/30)"
             sleep 5
           done
 
+          echo "Deployment health check failed"
+          docker logs --tail 100 hobanwoo-backend
           exit 1
         env:
           BACKEND_IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
