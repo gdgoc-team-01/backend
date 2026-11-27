@@ -78,20 +78,20 @@ jobs:
         env:
           BACKEND_IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
         run: |
-          mkdir -p ~/backend/nginx
+          mkdir -p ~/backend
 
           cp docker-compose.prod.yml ~/backend/
-          cp nginx/default.conf ~/backend/nginx/
+          cp Caddyfile ~/backend/
 
           cd ~/backend
 
           docker compose -p backend -f docker-compose.prod.yml config --quiet
-          docker compose -p backend -f docker-compose.prod.yml pull
-          docker compose -p backend -f docker-compose.prod.yml up -d
-          docker compose -p backend -f docker-compose.prod.yml exec -T nginx nginx -t
-          docker compose -p backend -f docker-compose.prod.yml exec -T nginx nginx -s reload
+          docker compose -p backend -f docker-compose.prod.yml pull backend
+          docker compose -p backend -f docker-compose.prod.yml up -d --remove-orphans
 
       - name: Check deployment
+        env:
+          BACKEND_IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
         run: |
           cd ~/backend
           docker compose -p backend -f docker-compose.prod.yml ps
@@ -112,24 +112,24 @@ jobs:
           echo "Deployment health check failed"
           docker logs --tail 100 hobanwoo-backend
           exit 1
-        env:
-          BACKEND_IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      - name: Check reverse proxy
+      - name: Check HTTPS
         run: |
-          for i in $(seq 1 10); do
-            if STATUS=$(curl -sS --max-time 3 \
+          for i in $(seq 1 30); do
+            if STATUS=$(curl -sS --max-time 5 \
               -o /dev/null -w "%{http_code}" \
-              http://127.0.0.1/actuator/health) \
+              https://hobanwooradar.duckdns.org/actuator/health) \
               && [ "$STATUS" = "200" ]; then
-              echo "Nginx health check successful"
+              echo "HTTPS health check successful"
               exit 0
             fi
 
-            sleep 3
+            echo "Waiting for HTTPS ($i/30)"
+            sleep 5
           done
 
-          echo "Nginx health check failed"
+          echo "HTTPS health check failed"
+          docker logs --tail 100 hobanwoo-caddy
           exit 1
 
       - name: Logout from GHCR
