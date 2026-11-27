@@ -30,10 +30,13 @@ class GoogleLoginConfiguration {
                         paths.matcher("/oauth2/authorization/google"), paths.matcher("/login/oauth2/code/google"),
                         paths.matcher("/login/success"), paths.matcher("/login/failed"),
                         paths.matcher("/me"), paths.matcher("/csrf"), paths.matcher("/logout"),
-                        updateUser, deleteUser))
+                        paths.matcher("/api/posts/**"), updateUser, deleteUser))
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/login/success", "/me", "/csrf").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+                        .requestMatchers("/api/posts/**").authenticated()
                         .requestMatchers(updateUser, deleteUser).authenticated()
+                        .requestMatchers("/actuator/health").permitAll()
                         .anyRequest().permitAll())
                 .logout(logout -> logout
                         .logoutUrl("/logout")

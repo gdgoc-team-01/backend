@@ -20,7 +20,7 @@ public class EmbeddingOutboxHandler {
 
     @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public Post findPost(Long postId) {
-        return postRepository.findById(postId)
+        return postRepository.findWithImageById(postId)
                 .orElseThrow(() -> new NoSuchElementException("게시글을 찾을 수 없습니다. id=" + postId));
     }
 

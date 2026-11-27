@@ -60,16 +60,22 @@ public class EmbeddingEventListener {
     }
 
     private void embedImage(Post post) {
+        if (post.getImage() != null) {
+            sendImage(post, post.getImage().getData(), MediaType.parseMediaType(post.getImage().getMediaType()));
+            return;
+        }
         URI uri = URI.create(post.getImageUrl());
         var response = imageClient.get().uri(uri).retrieve().toEntity(byte[].class);
-        byte[] bytes = response.getBody();
+        sendImage(post, response.getBody(), response.getHeaders().getContentType());
+    }
+
+    private void sendImage(Post post, byte[] bytes, MediaType contentType) {
         var image = new ByteArrayResource(bytes) {
             @Override
             public String getFilename() {
                 return "image";
             }
         };
-        MediaType contentType = response.getHeaders().getContentType();
         aiClient.embedFound(post.getId(), image, contentType);
     }
 }

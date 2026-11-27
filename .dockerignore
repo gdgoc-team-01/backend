@@ -1,0 +1,13 @@
+.git
+.github
+.gradle
+.idea
+*.iml
+**/*.pem
+**/*.key
+.env
+.env.*
+src
+
+# Environment variables
+!.env.example
