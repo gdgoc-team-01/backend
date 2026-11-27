@@ -14,6 +14,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECTURI: "https://hobanwooradar.duckdns.org/login/oauth2/code/google"
     depends_on:
       postgres:
         condition: service_healthy
