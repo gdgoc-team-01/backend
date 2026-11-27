@@ -74,17 +74,22 @@ jobs:
           echo "$GHCR_TOKEN" | docker login ghcr.io \
             -u "${{ github.actor }}" --password-stdin
 
-      - name: Deploy backend
+      - name: Deploy services
         env:
           BACKEND_IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
         run: |
+          mkdir -p ~/backend/nginx
+
           cp docker-compose.prod.yml ~/backend/
+          cp nginx/default.conf ~/backend/nginx/
 
           cd ~/backend
 
           docker compose -p backend -f docker-compose.prod.yml config --quiet
-          docker compose -p backend -f docker-compose.prod.yml pull backend
-          docker compose -p backend -f docker-compose.prod.yml up -d backend
+          docker compose -p backend -f docker-compose.prod.yml pull
+          docker compose -p backend -f docker-compose.prod.yml up -d
+          docker compose -p backend -f docker-compose.prod.yml exec -T nginx nginx -t
+          docker compose -p backend -f docker-compose.prod.yml exec -T nginx nginx -s reload
 
       - name: Check deployment
         run: |
@@ -109,6 +114,23 @@ jobs:
           exit 1
         env:
           BACKEND_IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Check reverse proxy
+        run: |
+          for i in $(seq 1 10); do
+            if STATUS=$(curl -sS --max-time 3 \
+              -o /dev/null -w "%{http_code}" \
+              http://127.0.0.1/actuator/health) \
+              && [ "$STATUS" = "200" ]; then
+              echo "Nginx health check successful"
+              exit 0
+            fi
+
+            sleep 3
+          done
+
+          echo "Nginx health check failed"
+          exit 1
 
       - name: Logout from GHCR
         if: always()
